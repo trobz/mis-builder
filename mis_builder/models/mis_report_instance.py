@@ -408,7 +408,8 @@ class MisReportInstancePeriod(models.Model):
         compatible with the model of the query."""
         self.ensure_one()
         domain = []
-        if company_field := query.sudo().company_field_id:
+        company_field = query.sudo().company_field_id
+        if company_field:
             query_company_ids = self.report_instance_id.query_company_ids.ids
             assert query_company_ids
             domain = [(company_field.name, "in", query_company_ids)]
@@ -788,7 +789,6 @@ class MisReportInstance(models.Model):
         )
 
     def export_xls(self):
-        self.ensure_one()
         return self.env.ref("mis_builder.xls_export").report_action(
             self, data=dict(dummy=True)
         )  # required to propagate context
@@ -1001,7 +1001,8 @@ class MisReportInstance(models.Model):
         """Return the context used to filter annotation linked to this instance."""
         self.ensure_one()
         annotation_context = {}
-        if query_company_ids := self.query_company_ids.ids:
+        query_company_ids = self.query_company_ids.ids
+        if query_company_ids:
             # sort ids to make the comparaison easier
             annotation_context["query_company_ids"] = sorted(query_company_ids)
 
@@ -1017,4 +1018,11 @@ class MisReportInstance(models.Model):
     def _compute_user_can_edit_annotation(self):
         self.user_can_edit_annotation = self.env.user.has_group(
             "mis_builder.group_edit_annotation"
+        )
+
+    def _get_xlsx_report_name(self):
+        self.ensure_one()
+        return "{} - {}".format(
+            self.name,
+            ", ".join([a.name for a in self.query_company_ids]),
         )
