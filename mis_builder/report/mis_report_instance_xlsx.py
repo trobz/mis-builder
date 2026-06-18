@@ -31,7 +31,8 @@ class MisBuilderXlsx(models.AbstractModel):
         """
         Add anotation as a comment on cell in .xls
         """
-        if cell and (annotation := notes.get(cell.cell_id, {}).get("text")):
+        annotation = notes.get(cell.cell_id, {})
+        if cell and (annotation.get("text")):
             sheet.write_comment(row_pos, col_pos, annotation)
 
     def _get_worksheet_name(self, mis_instance):
